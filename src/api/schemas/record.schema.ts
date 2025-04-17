@@ -23,9 +23,11 @@ export class Record extends Document {
   @Prop({ enum: RecordCategory, required: true, index: true })
   category: RecordCategory;
 
+  // This data is unnecesarry because there is already createdAt field
   @Prop({ default: Date.now })
   created: Date;
 
+  // This data is unnecesarry because there is already createdAt field
   @Prop({ default: Date.now })
   lastModified: Date;
 

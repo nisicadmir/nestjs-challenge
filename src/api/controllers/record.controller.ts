@@ -26,7 +26,11 @@ import {
 } from '../schemas/record.enum';
 import { Record } from '../schemas/record.schema';
 
+import { axiosGet } from '../lib/axios';
 import { RecordRepository } from '../repositories/record.repository';
+import { IMusicBrainzResponse } from '../schemas/music-brainz.model';
+import { ITrack } from '../schemas/track.model';
+
 @Controller('records')
 export class RecordController {
   constructor(private readonly recordRepository: RecordRepository) {}
@@ -36,6 +40,29 @@ export class RecordController {
   @ApiResponse({ status: 201, description: 'Record successfully created' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   async create(@Body() request: CreateRecordRequestDTO): Promise<Record> {
+    const mbid = request.mbid ? request.mbid : null;
+    const tracks: ITrack[] = [];
+    if (mbid) {
+      try {
+        const musicBrainzData = await axiosGet<IMusicBrainzResponse>(
+          `https://musicbrainz.org/ws/2/release/${mbid}?fmt=json&inc=recordings+artist-credits`,
+        );
+        musicBrainzData.media.forEach((media) => {
+          const tracksExtracted = media.tracks.map((track) => ({
+            title: track.title,
+            position: track.position,
+            length: track.length,
+          }));
+          tracks.push(...tracksExtracted);
+        });
+      } catch (error) {
+        console.error('Error fetching musicbrainz data', error);
+        throw new InternalServerErrorException(
+          'Error fetching musicbrainz data',
+          error,
+        );
+      }
+    }
     return await this.recordRepository.create({
       artist: request.artist,
       album: request.album,
@@ -44,6 +71,7 @@ export class RecordController {
       format: request.format,
       category: request.category,
       mbid: request.mbid,
+      tracks: tracks,
     });
   }
 
