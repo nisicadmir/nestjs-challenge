@@ -26,14 +26,16 @@ import {
 } from '../schemas/record.enum';
 import { Record } from '../schemas/record.schema';
 
-import { axiosGet } from '../lib/axios';
 import { RecordRepository } from '../repositories/record.repository';
-import { IMusicBrainzResponse } from '../schemas/music-brainz.model';
 import { ITrack } from '../schemas/track.model';
+import { RecordService } from '../services/record.service';
 
 @Controller('records')
 export class RecordController {
-  constructor(private readonly recordRepository: RecordRepository) {}
+  constructor(
+    private readonly recordRepository: RecordRepository,
+    private readonly recordService: RecordService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new record' })
@@ -41,27 +43,9 @@ export class RecordController {
   @ApiResponse({ status: 400, description: 'Bad Request' })
   async create(@Body() request: CreateRecordRequestDTO): Promise<Record> {
     const mbid = request.mbid ? request.mbid : null;
-    const tracks: ITrack[] = [];
+    let tracks: ITrack[] = [];
     if (mbid) {
-      try {
-        const musicBrainzData = await axiosGet<IMusicBrainzResponse>(
-          `https://musicbrainz.org/ws/2/release/${mbid}?fmt=json&inc=recordings+artist-credits`,
-        );
-        musicBrainzData.media.forEach((media) => {
-          const tracksExtracted = media.tracks.map((track) => ({
-            title: track.title,
-            position: track.position,
-            length: track.length,
-          }));
-          tracks.push(...tracksExtracted);
-        });
-      } catch (error) {
-        console.error('Error fetching musicbrainz data', error);
-        throw new InternalServerErrorException(
-          'Error fetching musicbrainz data',
-          error,
-        );
-      }
+      tracks = await this.recordService.getMusicBrainzData(mbid);
     }
     return await this.recordRepository.create({
       artist: request.artist,
@@ -88,10 +72,17 @@ export class RecordController {
       throw new InternalServerErrorException('Record not found');
     }
 
+    if (updateRecordDto.mbid) {
+      const tracks = await this.recordService.getMusicBrainzData(
+        updateRecordDto.mbid,
+      );
+      record.tracks = tracks;
+    }
+
     Object.assign(record, updateRecordDto);
 
-    const updated = await this.recordRepository.updateOne(id, record);
-    if (!updated) {
+    const updated = await this.recordRepository.updateOne({ _id: id }, record);
+    if (!updated.modifiedCount) {
       throw new InternalServerErrorException('Failed to update record');
     }
 
