@@ -1,45 +1,42 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Param,
-  Query,
-  Put,
   InternalServerErrorException,
+  Param,
+  Post,
+  Put,
+  Query,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Record } from '../schemas/record.schema';
-import { Model } from 'mongoose';
 import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CreateRecordRequestDTO } from '../dtos/create-record.request.dto';
+import { UpdateRecordRequestDTO } from '../dtos/update-record.request.dto';
+import {
+  generateNextPageToken,
+  generatePaginationQuery,
+  getLimit,
+  getSortOrder,
+  parseNextPageToken,
+} from '../lib/paginate';
+import { SortOrder } from '../lib/paginate.model';
 import {
   RecordCategory,
   RecordFormat,
   RecordSortBy,
 } from '../schemas/record.enum';
-import { UpdateRecordRequestDTO } from '../dtos/update-record.request.dto';
-import {
-  getLimit,
-  parseNextPageToken,
-  generatePaginationQuery,
-  generateNextPageToken,
-  getSortOrder,
-} from '../lib/paginate';
-import { SortOrder } from '../lib/paginate.model';
+import { Record } from '../schemas/record.schema';
 
+import { RecordRepository } from '../repositories/record.repository';
 @Controller('records')
 export class RecordController {
-  constructor(
-    @InjectModel('Record') private readonly recordModel: Model<Record>,
-  ) {}
+  constructor(private readonly recordRepository: RecordRepository) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new record' })
   @ApiResponse({ status: 201, description: 'Record successfully created' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   async create(@Body() request: CreateRecordRequestDTO): Promise<Record> {
-    return await this.recordModel.create({
+    return await this.recordRepository.create({
       artist: request.artist,
       album: request.album,
       price: request.price,
@@ -58,14 +55,14 @@ export class RecordController {
     @Param('id') id: string,
     @Body() updateRecordDto: UpdateRecordRequestDTO,
   ): Promise<Record> {
-    const record = await this.recordModel.findById(id);
+    const record = await this.recordRepository.findById(id);
     if (!record) {
       throw new InternalServerErrorException('Record not found');
     }
 
     Object.assign(record, updateRecordDto);
 
-    const updated = await this.recordModel.updateOne(record);
+    const updated = await this.recordRepository.updateOne(id, record);
     if (!updated) {
       throw new InternalServerErrorException('Failed to update record');
     }
@@ -202,11 +199,10 @@ export class RecordController {
       nextValue,
     );
 
-    const data = await this.recordModel
-      .find(finalFilter)
-      .sort({ [sortByValue]: sortOrderValue, _id: sortOrderValue }) // add sort order also by _id
-      .limit(limitValue)
-      .exec();
+    const data = await this.recordRepository.find(finalFilter, limitValue, {
+      [sortByValue]: sortOrderValue,
+      _id: sortOrderValue,
+    });
 
     const nextPageToken = generateNextPageToken(
       data,
