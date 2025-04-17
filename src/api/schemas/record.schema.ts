@@ -2,6 +2,13 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { RecordFormat, RecordCategory } from './record.enum';
 
+/**
+ * As the challenge says we should have unique identifier by:
+ * **artist**
+ * **album**
+ * **format**
+ */
+
 @Schema({ timestamps: true })
 export class Record extends Document {
   @Prop({ required: true, index: true })
@@ -38,6 +45,10 @@ export const RecordSchema = SchemaFactory.createForClass(Record);
 RecordSchema.index({ artist: 1 });
 RecordSchema.index({ album: 1 });
 RecordSchema.index({ category: 1 });
+// Adding unique index.
+// Important to add this index.
+// If this index cannot be added then we need to fix the data before adding the index.
+RecordSchema.index({ album: 1, artist: 1, format: 1 }, { unique: true });
 
 // Add compound indexes for common query combinations
 RecordSchema.index({ artist: 1, album: 1 });
