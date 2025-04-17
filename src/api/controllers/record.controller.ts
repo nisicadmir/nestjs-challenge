@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   InternalServerErrorException,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -68,12 +70,12 @@ export class RecordController {
     @Body() updateRecordDto: UpdateRecordRequestDTO,
   ): Promise<Record> {
     if (Object.keys(updateRecordDto).length === 0) {
-      throw new InternalServerErrorException('No fields to update'); // Bad response but focus is not on error handling
+      throw new BadRequestException('No fields to update');
     }
 
     const record = await this.recordRepository.findById(id);
     if (!record) {
-      throw new InternalServerErrorException('Record not found');
+      throw new NotFoundException('Record not found');
     }
 
     // Also do not call 3rd party API if mbid are the same.

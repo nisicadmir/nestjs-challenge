@@ -1,8 +1,12 @@
 import { InternalServerErrorException } from '@nestjs/common';
-import { Model, Document } from 'mongoose';
+import { Model, Document, ClientSession } from 'mongoose';
 
 export abstract class MongoRepository<T extends Document> {
   constructor(private readonly model: Model<T>) {}
+
+  async startSession(): Promise<ClientSession> {
+    return await this.model.startSession();
+  }
 
   async find(filter: any = {}, limit?: number, sort?: any): Promise<T[]> {
     const query = this.model.find(filter);
@@ -35,9 +39,17 @@ export abstract class MongoRepository<T extends Document> {
     }
   }
 
-  async updateOne(filter: any, update: any) {
+  async createMany(data: any[], options?: any): Promise<T[]> {
     try {
-      return this.model.updateOne(filter, update);
+      return this.model.create(data, options);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to create records', error);
+    }
+  }
+
+  async updateOne(filter: any, update: any, options?: any) {
+    try {
+      return this.model.updateOne(filter, update, options);
     } catch (error) {
       throw new InternalServerErrorException('Failed to update record', error);
     }
