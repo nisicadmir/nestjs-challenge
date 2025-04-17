@@ -108,38 +108,39 @@ export class RecordController {
     @Query('format') format?: RecordFormat,
     @Query('category') category?: RecordCategory,
   ): Promise<Record[]> {
-    const allRecords = await this.recordModel.find().exec();
+    const filter: any = {};
 
-    const filteredRecords = allRecords.filter((record) => {
-      let match = true;
+    /*
+     * IMPORTANT:
+     * Using regex with includes cannot use any index of MongoDB.
+     * Alternative will be to use `{ artist: { $regex: `^${q}`, $options: 'i' } }` // startsWith filter which uses index.
+     * This query will end up with scanning all the documents and if we are having too many data inside
+     * the DB then this query is not performant at all.
+     */
+    if (q) {
+      filter.$or = [
+        { artist: { $regex: q, $options: 'i' } },
+        { album: { $regex: q, $options: 'i' } },
+        { category: { $regex: q, $options: 'i' } },
+      ];
+    }
 
-      if (q) {
-        match =
-          match &&
-          (record.artist.includes(q) ||
-            record.album.includes(q) ||
-            record.category.includes(q));
-      }
+    if (artist) {
+      filter.artist = { $regex: artist, $options: 'i' };
+    }
 
-      if (artist) {
-        match = match && record.artist.includes(artist);
-      }
+    if (album) {
+      filter.album = { $regex: album, $options: 'i' };
+    }
 
-      if (album) {
-        match = match && record.album.includes(album);
-      }
+    if (format) {
+      filter.format = format;
+    }
 
-      if (format) {
-        match = match && record.format === format;
-      }
+    if (category) {
+      filter.category = category;
+    }
 
-      if (category) {
-        match = match && record.category === category;
-      }
-
-      return match;
-    });
-
-    return filteredRecords;
+    return await this.recordModel.find(filter).exec();
   }
 }
