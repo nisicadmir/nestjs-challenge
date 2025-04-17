@@ -38,28 +38,39 @@ export class Record extends Document {
 
 export const RecordSchema = SchemaFactory.createForClass(Record);
 
-// Add regular indexes to support regex queries
-RecordSchema.index({ artist: 1 });
-RecordSchema.index({ album: 1 });
-RecordSchema.index({ category: 1 });
-
 // Adding unique index.
-// Important to add this index.
 // If this index cannot be added then we need to fix the data before adding the index.
 RecordSchema.index({ album: 1, artist: 1, format: 1 }, { unique: true });
 
 // Add compound indexes for common query combinations
-RecordSchema.index({ artist: 1, album: 1 });
+// Sort by createdAt field
+RecordSchema.index({ artist: 1, album: 1, createdAt: 1, _id: 1 });
+RecordSchema.index({ album: 1, artist: 1, createdAt: 1, _id: 1 });
 
-// Create text index for full text search
-RecordSchema.index(
-  { artist: 'text', album: 'text', category: 'text' },
-  {
-    name: 'record_text_search',
-    weights: {
-      artist: 3, // artist matches are more important
-      album: 2, // album matches are second most important
-      category: 1, // category matches are least important
-    },
-  },
-);
+// Sort by updatedAt field
+RecordSchema.index({ artist: 1, album: 1, updatedAt: 1, _id: 1 });
+RecordSchema.index({ album: 1, artist: 1, updatedAt: 1, _id: 1 });
+
+// Format-based indexes with pagination support
+RecordSchema.index({ format: 1, createdAt: 1, _id: 1 });
+RecordSchema.index({ format: 1, updatedAt: 1, _id: 1 });
+
+// Category-based indexes with pagination support
+RecordSchema.index({ category: 1, createdAt: 1, _id: 1 });
+RecordSchema.index({ category: 1, updatedAt: 1, _id: 1 });
+
+// Combined format and category indexes with pagination support
+RecordSchema.index({ format: 1, category: 1, createdAt: 1, _id: 1 });
+RecordSchema.index({ format: 1, category: 1, updatedAt: 1, _id: 1 });
+
+// Format with artist/album indexes
+RecordSchema.index({ format: 1, artist: 1, createdAt: 1, _id: 1 });
+RecordSchema.index({ format: 1, artist: 1, updatedAt: 1, _id: 1 });
+RecordSchema.index({ format: 1, album: 1, createdAt: 1, _id: 1 });
+RecordSchema.index({ format: 1, album: 1, updatedAt: 1, _id: 1 });
+
+// Category with artist/album indexes
+RecordSchema.index({ category: 1, artist: 1, createdAt: 1, _id: 1 });
+RecordSchema.index({ category: 1, artist: 1, updatedAt: 1, _id: 1 });
+RecordSchema.index({ category: 1, album: 1, createdAt: 1, _id: 1 });
+RecordSchema.index({ category: 1, album: 1, updatedAt: 1, _id: 1 });

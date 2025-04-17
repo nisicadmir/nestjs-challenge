@@ -141,7 +141,12 @@ const paginateRecords = async (collection: Collection) => {
           const tracks: ITrack[] = [];
           for (const media of trackData.media) {
             for (const track of media.tracks) {
-              tracks.push(track);
+              const newTrack: ITrack = {
+                length: track.length,
+                title: track.title,
+                position: track.position,
+              };
+              tracks.push(newTrack);
             }
           }
 

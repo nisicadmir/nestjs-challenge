@@ -14,3 +14,9 @@ export enum RecordCategory {
   ALTERNATIVE = 'Alternative',
   INDIE = 'Indie',
 }
+
+// Record can be sorted by these 2 fields, we have to take care about indexes.
+export enum RecordSortBy {
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+}

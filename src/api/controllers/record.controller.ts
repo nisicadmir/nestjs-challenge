@@ -13,8 +13,20 @@ import { Record } from '../schemas/record.schema';
 import { Model } from 'mongoose';
 import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CreateRecordRequestDTO } from '../dtos/create-record.request.dto';
-import { RecordCategory, RecordFormat } from '../schemas/record.enum';
+import {
+  RecordCategory,
+  RecordFormat,
+  RecordSortBy,
+} from '../schemas/record.enum';
 import { UpdateRecordRequestDTO } from '../dtos/update-record.request.dto';
+import {
+  getLimit,
+  parseNextPageToken,
+  generatePaginationQuery,
+  generateNextPageToken,
+  getSortOrder,
+} from '../lib/paginate';
+import { SortOrder } from '../lib/paginate.model';
 
 @Controller('records')
 export class RecordController {
@@ -101,14 +113,55 @@ export class RecordController {
     enum: RecordCategory,
     type: String,
   })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Limit the number of records returned',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    description: 'Sort order (asc or desc)',
+    enum: SortOrder,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description:
+      'Sort by values. Currently supporting createdAt and updatedAt fields',
+    enum: RecordSortBy,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'next',
+    required: false,
+    description: 'Next page token',
+    type: String,
+  })
   async findAll(
     @Query('q') q?: string,
     @Query('artist') artist?: string,
     @Query('album') album?: string,
     @Query('format') format?: RecordFormat,
     @Query('category') category?: RecordCategory,
-  ): Promise<Record[]> {
+    @Query('limit') limit?: number,
+    @Query('sortOrder') sortOrder?: SortOrder,
+    @Query('sortBy') sortBy?: RecordSortBy,
+    @Query('next') next?: string,
+  ): Promise<{ data: Record[]; nextPageToken: string }> {
     const filter: any = {};
+
+    const limitValue = getLimit(limit);
+    const sortOrderValue = getSortOrder(sortOrder);
+    const nextValue = parseNextPageToken(next);
+    const sortByValue = sortBy ? sortBy : RecordSortBy.CREATED_AT;
+
+    /*
+     * We will use a key-set pagination for this endpoint.
+     * If we do not use pagination then if filters are not provided we might return all data from the database.
+     */
 
     /*
      * IMPORTANT:
@@ -143,6 +196,27 @@ export class RecordController {
       filter.category = category;
     }
 
-    return await this.recordModel.find(filter).exec();
+    const finalFilter = generatePaginationQuery(
+      filter,
+      { sortBy: sortByValue, sortOrder: sortOrderValue },
+      nextValue,
+    );
+
+    const data = await this.recordModel
+      .find(finalFilter)
+      .sort({ [sortByValue]: sortOrderValue, _id: sortOrderValue }) // add sort order also by _id
+      .limit(limitValue)
+      .exec();
+
+    const nextPageToken = generateNextPageToken(
+      data,
+      {
+        sortBy: sortByValue,
+        sortOrder: sortOrderValue,
+      },
+      limitValue,
+    );
+
+    return { data, nextPageToken };
   }
 }
