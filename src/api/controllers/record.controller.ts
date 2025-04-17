@@ -67,16 +67,23 @@ export class RecordController {
     @Param('id') id: string,
     @Body() updateRecordDto: UpdateRecordRequestDTO,
   ): Promise<Record> {
+    if (Object.keys(updateRecordDto).length === 0) {
+      throw new InternalServerErrorException('No fields to update'); // Bad response but focus is not on error handling
+    }
+
     const record = await this.recordRepository.findById(id);
     if (!record) {
       throw new InternalServerErrorException('Record not found');
     }
 
-    if (updateRecordDto.mbid) {
+    // Also do not call 3rd party API if mbid are the same.
+    if (updateRecordDto.mbid && updateRecordDto.mbid !== record.mbid) {
       const tracks = await this.recordService.getMusicBrainzData(
         updateRecordDto.mbid,
       );
       record.tracks = tracks;
+    } else {
+      record.tracks = []; // If not provided then we need to get rid of tracks
     }
 
     Object.assign(record, updateRecordDto);
