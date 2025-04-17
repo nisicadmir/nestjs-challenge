@@ -1,0 +1,257 @@
+{
+	"info": {
+		"_postman_id": "b80e4b4b-48c6-4c5b-ace0-5b4485c00db7",
+		"name": "challenge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16750807"
+	},
+	"item": [
+		{
+			"name": "records - find",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/records?sortOrder=asc&sortBy=createdAt",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"records"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "Division",
+							"disabled": true
+						},
+						{
+							"key": "artist",
+							"value": "Mercy",
+							"disabled": true
+						},
+						{
+							"key": "album",
+							"value": "Always",
+							"disabled": true
+						},
+						{
+							"key": "format",
+							"value": "Vinyl",
+							"disabled": true
+						},
+						{
+							"key": "category",
+							"value": "Rock",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "1",
+							"disabled": true
+						},
+						{
+							"key": "next",
+							"value": "eyJfaWQiOiI2ODAwZDJlZTkzZjBlNzQ5Mjc5ZDE2NjkiLCJjcmVhdGVkQXQiOiIyMDI1LTA0LTE3VDEwOjA3OjQyLjQwOFoifQ==",
+							"disabled": true
+						},
+						{
+							"key": "sortOrder",
+							"value": "asc"
+						},
+						{
+							"key": "sortBy",
+							"value": "createdAt"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "records - create",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"artist\": \"The Smiths\",\n    \"album\": \"The Queen Is Dead\",\n    \"price\": 10,\n    \"qty\": 10,\n    \"format\": \"CD\",\n    \"category\": \"Alternative\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/records",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"records"
+					],
+					"query": [
+						{
+							"key": "artist",
+							"value": "Mercy",
+							"disabled": true
+						},
+						{
+							"key": "album",
+							"value": "Always",
+							"disabled": true
+						},
+						{
+							"key": "format",
+							"value": "Vinyl",
+							"disabled": true
+						},
+						{
+							"key": "category",
+							"value": "Alternative",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "records - update",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"artist\": \"The Smiths\",\n    \"mbid\": \"fd0da5e1-fbb4-3a6c-a575-929b78a272c3\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/records/680139be0282f7d28b194019",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"records",
+						"680139be0282f7d28b194019"
+					],
+					"query": [
+						{
+							"key": "artist",
+							"value": "Mercy",
+							"disabled": true
+						},
+						{
+							"key": "album",
+							"value": "Always",
+							"disabled": true
+						},
+						{
+							"key": "format",
+							"value": "Vinyl",
+							"disabled": true
+						},
+						{
+							"key": "category",
+							"value": "Alternative",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "records - orders",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"recordId\": \"680139be0282f7d28b194019\",\n    \"quantity\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/orders",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"orders"
+					],
+					"query": [
+						{
+							"key": "artist",
+							"value": "Mercy",
+							"disabled": true
+						},
+						{
+							"key": "album",
+							"value": "Always",
+							"disabled": true
+						},
+						{
+							"key": "format",
+							"value": "Vinyl",
+							"disabled": true
+						},
+						{
+							"key": "category",
+							"value": "Alternative",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "MusicBrainz get",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://musicbrainz.org/ws/2/release/3166b55c-17db-3a92-87f7-3b62d0222c46?fmt=json&inc=recordings+artist-credits",
+					"protocol": "https",
+					"host": [
+						"musicbrainz",
+						"org"
+					],
+					"path": [
+						"ws",
+						"2",
+						"release",
+						"3166b55c-17db-3a92-87f7-3b62d0222c46"
+					],
+					"query": [
+						{
+							"key": "fmt",
+							"value": "json"
+						},
+						{
+							"key": "inc",
+							"value": "recordings+artist-credits"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

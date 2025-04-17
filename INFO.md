@@ -30,6 +30,10 @@ I added a repository pattern where we will have find, create and other methods a
 I did not care much about error messages or the type of error it is returned.
 I did not use services much but used controllers hence the logic is simple so I did not want to use much of the services.
 
+# Postman collection
+
+There is a postman collection of API examples as well.
+
 # Tests
 
 I did not write any test. I write a lot test at work :)
