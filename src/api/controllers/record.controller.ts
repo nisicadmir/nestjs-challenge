@@ -116,6 +116,8 @@ export class RecordController {
      * Alternative will be to use `{ artist: { $regex: `^${q}`, $options: 'i' } }` // startsWith filter which uses index.
      * This query will end up with scanning all the documents and if we are having too many data inside
      * the DB then this query is not performant at all.
+     *
+     * MongoDB's full text search cannot handle cases where we need contains option.
      */
     if (q) {
       filter.$or = [
